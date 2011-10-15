@@ -1,3 +1,25 @@
+/****************************************************************************
+ * This file contains a program that provides the user with some basic      *  
+ * very cryptanalysis tools. It takes as input a text file that contains    *
+ * the ciphertext.                                                          *
+ *                                                                          *
+ * You will need the Go compiler to run this file. Vist http://golang.org   *
+ * for more information.                                                    *
+ *                                                                          *
+ * This program is free software: you can redistribute and/or modify this   *
+ * file under the terms of the GNU General Public License as published by   *
+ * the Free Software Foundation, either version 3 of the License, or        *
+ * (at your option) any later version.                                      *                                             
+ *                                                                          *
+ * The file distributed in the hope that it will be useful, but WITHOUT     *
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or    *
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License    *
+ * for more details.                                                        *
+ *                                                                          *
+ * Copyright (C) 2011 Akanksha Vyas                                         *
+ *                                                                          *
+ ****************************************************************************/
+
 package main
 
 import (
@@ -71,6 +93,10 @@ func main () {
 
    fmt.Println( "\n" )
 
+   replace( ciphertext, 'N', 'T')
+   replace( ciphertext, 'Z', 'H')
+   replace( ciphertext, 'Y', 'E')
+   fmt.Println( string( ciphertext ))
 }
 
 /* Takes a string and a map as input, and maps each letter 
@@ -100,12 +126,11 @@ func threeLetterFrequency( dest string, frequency map[string] int ) {
 
 /* Takes a byte array and two letters as input, and returns a string with 
 every occurrence of the first letter replaced with the second letter.   */
-func replace( dest []int, find int, replace int ) ( []int ) {
+func replace( dest []int, find int, replace int ) {
    changed := dest
    for i := 0; i < len(dest); i++ {
       if dest[i] == find { 
          changed[i] = replace
       }
    }
-   return changed
 }
