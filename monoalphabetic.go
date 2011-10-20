@@ -25,7 +25,7 @@ package main
 import (
    "os"
    "fmt"
-   //"strings"
+   "io"
 )
 
 func main () {
@@ -44,6 +44,8 @@ func main () {
       ciphertext = []int(string(buf))
       fmt.Println( string( ciphertext ))
    }
+
+
 
    /* Calculates the frequency of each letter in the string and stores it in a map.    */
    singleFrequency := make( map[int] int, 64)
@@ -93,9 +95,23 @@ func main () {
 
    fmt.Println( "\n" )
 
-   replace( ciphertext, 'N', 'T')
-   replace( ciphertext, 'Z', 'H')
-   replace( ciphertext, 'Y', 'E')
+   for {
+      fmt.Println(" lalala ")
+      if temp, err := io.ReadByte( os.Stdin ); err != nil {
+         fmt.Fprintf( os.Stderr, "decrypt: %s\n", err )
+      } else if temp == 'q' {
+         fmt.Println(string(temp))
+         os.Exit(0)
+      } /*else if temp[0] == 'r' {
+         stringReplace := []int( string( temp ))
+         replace( ciphertext, stringReplace[1], stringReplace[2] )
+         fmt.Println( string( ciphertext ))
+      }*/
+   }
+
+  // replace( ciphertext, 'N', 'T')
+  // replace( ciphertext, 'Z', 'H')
+  // replace( ciphertext, 'Y', 'E')
    fmt.Println( string( ciphertext ))
 }
 
