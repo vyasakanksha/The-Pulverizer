@@ -1,0 +1,28 @@
+ncy pfi gseswrv hlt dppwrisbi cj ivi hsgdbh pgwxurbsri tsg cyg qvndxduvpdln qsjfwt.
+hlxg ehgmvbqtbx wow ivvts tpfxh hs xh. xws jxfwi had deghw wozt qsbdyisv hqmtbgt ors
+aeiviboxxqw ddxxcrh kltfipg xws xwwvs degh mh qsbasc hs qcxw.
+tsg hlt tmggx eovi, orpzcos sg wqezibsri o jpgx pzkdfmivq ucv bipiwtammcu xlc mchivsvh.
+tsg hlt gircrs degh, ecopnni df mbdptaich e uowi opvcvxhlb tsg rmkwwxcr dt xlc mchivsvh.
+hlt wqezibsrioxxcr hvsjzh pzpdk jdf ec ovqwxgovn zicuxw wreix xbxtuigg ecr qpm ft kvxhxtb
+mc orn dvduvpaqxbk aorvievs su msjf gwcmrs. xws ecopngmh gldips gxphi tltawgxhpn hlt hmbs
+htdicricqi db xws ptbkivw dt xws mcdyi bybpigg.
+jdf xws xwwvs degh, agwxt o wwcvi fiecvi cr pzkdfmivqh iwtr jdf ktbigoxxbk gorscq xbxtuigg. 
+cdiv gstdfx hvsjzh xbgaiht o pxgx dt gxheiwscg xd dyqzmhvis ggxsriwjxq eghmrzih.
+gxjrichw tbvdzptr mc hlt uvpryphi ciqqsv dt xwww rcyggi hvsjzh sc fdhl ivi pbeamwxg ecr
+mbdptaicheiwsc.
+
+
+you are reading the plaintext of the second assignment for our cryptography course.
+this assignment has three parts to it. the first two parts have computer science and
+mathematics options whereas the third part is common to both.
+for the first part, analyze or implement a fast algorithm for multiplying two integers.
+for the second part, analyze or implement a fast algorithm for division of two integers.
+the implementation should allow for an arbitrary length input integers and may be written
+in any programming language of your choice. the analysis should state explicitly the time
+dependence on the lengths of the input numbers.
+for the third part, write a short report on algorithms used for generating random integers. 
+your report should include a list of citations to published scientific articles.
+students enrolled in the graduate number of this course should do both the analysis and
+implementation.
+
+
