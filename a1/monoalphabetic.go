@@ -51,7 +51,7 @@ func main () {
    var ciphertext []int
 
    /* Reads in a string from a file and stores it in var cipher.   */
-   if len(os.Args) != 2 {
+   if len(os.Args) < 2 {
       fmt.Fprintf( os.Stderr, "decrypt: Enter valid file name \n")
    } else if st, err := os.Stat( os.Args[1] ); err != nil {
       fmt.Fprintf( os.Stderr, "decrypt: %s\n", err );
@@ -113,20 +113,36 @@ func main () {
       }
    }
 
-   fmt.Println( "\n" )
-   var input string;
-   for {
-      fmt.Fscanln( os.Stdin, &input )
-
-      if input[0] == 'w' || input[0] == 'W' {
-         os.Exit(0)
-      }
-   }
 
    changed := make( []int, len( ciphertext ) )
    copy( changed, ciphertext )
 
-//   replace( changed, ciphertext, 'N', 'T')
+   fmt.Println( "\n" )
+   var input string
+
+
+/* Function to replace letters from the command line */
+   fmt.Println(" To Replace letters: R [Dest] [Source]" )
+   fmt.Println(" To Quit: Q" )
+
+   for {
+      fmt.Fscanln( os.Stdin, &input )
+
+      if input == "help" || input == "Help" {
+         fmt.Println(" To Replace letters type R followed by the replacement without spaces: R:[Dest][Source]" )
+         fmt.Println(" To Quit: Q" )
+         } else if input[0] == 'q' || input[0] == 'Q' {
+            break;
+      } else if input[0] == 'r' || input[0] == 'R' {
+         temp := []int(input)
+         replace( changed, ciphertext, temp[1], temp[2] )
+      } else {
+         fmt.Println( "Enter a valid input. Type Help for more information" )
+      }
+   }
+
+
+/* replace( changed, ciphertext, 'N', 'T')
    replace( changed, ciphertext, 'Z', 'H')
    replace( changed, ciphertext, 'Y', 'E')
    replace( changed, ciphertext, 'R', 'S')
@@ -148,7 +164,7 @@ func main () {
    replace( changed, ciphertext, 'M', 'V')
    replace( changed, ciphertext, 'B', 'D')
    replace( changed, ciphertext, 'T', 'K')
-
+*/
    fmt.Println( string( changed ))
 }
 
