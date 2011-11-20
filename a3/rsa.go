@@ -14,8 +14,8 @@ func main() {
 
 func factorize( n *big.Int )  {
    factor := new( big.Int )
-   start := new( big.Int )
    var end = big.NewInt(3)
+   start := sqrt( n )
    fmt.Println( start )
 
    i := start
@@ -31,3 +31,6 @@ func factorize( n *big.Int )  {
    fmt.Println( factor )
 }
 
+func sqrt( n *big.Int ) *big.Int {
+   return n
+}
