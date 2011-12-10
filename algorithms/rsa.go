@@ -8,6 +8,7 @@ import(
    "flag"
    "rand"
    "time"
+   "bufio"
    )
 
 
@@ -21,7 +22,6 @@ var three = big.NewInt(3)
 
 
 func main( ) {
-   var buf []byte
    var plaintext []int
    var bCiphertext []big.Int
 
@@ -35,79 +35,87 @@ func main( ) {
    } else if f, err := os.Open( os.Args[2] ); err != nil {
       fmt.Fprintf( os.Stderr, "RSA: %s\n", err );
    } else {
-      buf = make( []byte, st.Size )
-      f.Read( buf )
-   }
+      // public exponent
+      bN := new( big.Int )
 
-   // public exponent
-   bN := new( big.Int )
+      // private exponent
+      bD := new( big.Int )
 
-   // private exponent
-   bD := new( big.Int )
+      // If encrypt flag true
+      if( *e ) {
 
-   // If encrypt flag true
-   if( *e ) {
+         // Read the plaintext into a temp buffer
+         intBuf := make( []byte, st.Size )
+         f.Read( intBuf )
 
-      // Copies the temp buffer over to plaintext []int and sets up variables for
-      // private and public keys.
-      plaintext = []int(string(buf))
-      bP       := new( big.Int )
-      bQ       := new( big.Int )
-      bE       := new( big.Int )
-      bPMinus1 := new( big.Int )
-      bQMinus1 := new( big.Int )
-      bPhi     := new( big.Int )
+         // Reads the desired bitlength of the private keys and stores it in plength
+         // int.
+         temp := os.Args[3]
+         plength, err := strconv.Atoi( temp ); if err != nil {
+            fmt.Fprintf( os.Stderr, "%s\n", err )
+         }
 
-      // Setting public exponenet e to three does not affect security
-      bE = three
+         // Copies the temp buffer over to plaintext []int and sets up variables for
+         // private and public keys.
+         plaintext = []int( string( intBuf ))
+         bP       := new( big.Int )
+         bQ       := new( big.Int )
+         bE       := new( big.Int )
+         bPMinus1 := new( big.Int )
+         bQMinus1 := new( big.Int )
+         bPhi     := new( big.Int )
 
-   // Reads the desired bitlength of the private keys and stores it in plength
-   // int.
-   temp := os.Args[3]
-   plength, err := strconv.Atoi( temp ); if err != nil {
-     fmt.Fprintf( os.Stderr, "%s\n", err )
-   }
+         // Setting public exponenet e to three does not affect security
+         bE = three
 
-      // Generates private keys ensuring that they are not equal to each other
-      bP = privateKeyGenerator( plength )
-      bQ = privateKeyGenerator( plength )
-      if bP == bQ {
+         // Generates private keys ensuring that they are not equal to each other
+         bP = privateKeyGenerator( plength )
          bQ = privateKeyGenerator( plength )
+         if bP == bQ {
+            bQ = privateKeyGenerator( plength )
+         }
+
+         // Calculats public exponenet n and private exponent d
+         bN.Mul( bP, bQ )
+         bPMinus1.Sub( bP, one )
+         bQMinus1.Sub( bQ , one )
+         bPhi.Mul( bPMinus1, bQMinus1 )
+         bD.ModInverse( bE, bPhi )
+
+         fmt.Println( "private exponenets:" )
+         fmt.Println( bP )
+         fmt.Println( bQ )
+         fmt.Println( bPhi )
+         fmt.Println( bD )
+         fmt.Println(  )
+
+         // Encrypts text
+         bCiphertext = encrypt( plaintext, bN, bE, len( plaintext ))
+
+      // If decrypt flag true
+      } else if( *d ) {
+         // Reads in the ciphertext and stores each letter into a string slice
+         stringBuf := make( []string, st.Size )
+
+         // Reads the secret key and stores it in bD
+         temp := os.Args[3]
+         bD.SetString( temp, 10 )
+
+         // Copies letter in temporary buffer to a *big.Int[]
+         bCiphertext = make( []big.Int, len( stringBuf ) )
+
+         r := bufio.NewReader( f )
+         for i := 0; i < len( stringBuf ); i++ {
+            stringBuf[i], _ = r.ReadString( '\n' )
+            bCiphertext[i].SetString( string( stringBuf[i] ), 10)
+         }
+
+      plaintext = decrypt( bCiphertext, bN, bD, len( bCiphertext ))
+      // If no flag is set, exits with error
+      } else {
+         fmt.Fprintf( os.Stderr, "RSA: No flag set\n" )
+         os.Exit(0)
       }
-
-      // Calculats public exponenet n and private exponent d
-      bN.Mul( bP, bQ )
-      bPMinus1.Sub( bP, one )
-      bQMinus1.Sub( bQ , one )
-      bPhi.Mul( bPMinus1, bQMinus1 )
-      bD.ModInverse( bE, bPhi )
-
-      fmt.Println( "private exponenets:" )
-      fmt.Println( bP )
-      fmt.Println( bQ )
-      fmt.Println( bPhi )
-      fmt.Println( bD )
-      fmt.Println(  )
-
-      // Encrypts text
-      bCiphertext = encrypt( plaintext, bN, bE, len( plaintext ))
-
-   // If decrypt flag true
-   } else if( *d ) {
-   fmt.Println( "in decrypt" )
-   // Reads the secret key and stores it in bD
-   temp := os.Args[3]
-   bD.SetString( temp, 10 )
-      // Copies letter in temporary buffer to a *big.Int[]
-      bCiphertext = make( []big.Int, len( buf ) )
-      for i := 0; i < len( buf ); i++ {
-         bCiphertext[i].SetString( string( buf[i] ), 10)
-         plaintext = decrypt( bCiphertext, bN, bD, len( bCiphertext ))
-      }
-   // If no flag is set, exits with error
-   } else {
-      fmt.Fprintf( os.Stderr, "RSA: No flag set\n" )
-      os.Exit(0)
    }
 
    return
@@ -132,7 +140,7 @@ func privateKeyGenerator( plength int ) *big.Int {
    for( !isPrime ) {
       tempB.Rand( r, mlength )
       // sets the 2^(plength) bit to ensure that the number it atleast that big
-      prime.SetBit( tempB, plength, 1) 
+      prime.SetBit( tempB, plength, 1)
       isPrime = big.ProbablyPrime( prime, 5 )
    }
    return prime
@@ -157,7 +165,8 @@ func decrypt( ciphertext []big.Int, n, d *big.Int, textLen int ) []int {
    plaintext := make( []int, textLen )
    for i := 0; i < textLen; i++ {
       fmt.Println( i )
-      bDecrypt[i].Exp( &ciphertext[i], d, n )
+      bDecrypt[i].Exp( ciphertext[i], d, n )
+      fmt.Printf( "bd: %d", &bDecrypt[i] )
       plaintext[i] = int( bDecrypt[i].Int64() )
       fmt.Println( plaintext[i] )
    }
