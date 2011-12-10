@@ -20,6 +20,9 @@
  *                                                                          *
  ****************************************************************************/
 
+/* Things to do: max function for maps */
+
+
 package main
 
 import (
@@ -31,11 +34,8 @@ import (
 type IntMap map[int] int
 type StringMap map[string] int
 
-/*
-type MapSort interface {
-   Len() int
-   Less(i, j int) bool
-   Swap(i, j int)
+type MaxMap interface {
+   Ma() int
 }
 
 func (s IntMap ) Len() int                      { return len(s) }
@@ -122,8 +122,11 @@ func main () {
 
 
 /* Function to replace letters from the command line */
-   fmt.Println(" To Replace letters: R [Dest] [Source]" )
-   fmt.Println(" To Quit: Q" )
+
+   fmt.Println("You can use this prompt to replace letters in your ciphertext. Remember to use upper case letter and ensure that there are no spaces between entries")
+   fmt.Println("To replace  R:[Dest][Source]" )
+   fmt.Println("To Quit     Q" )
+   fmt.Println("")
 
    for {
       fmt.Fscanln( os.Stdin, &input )
@@ -203,10 +206,10 @@ func replace( changed, dest []int, find, replace int ) {
    }
 }
 
-/*func sort(m MapSort, a DataSort) {
+func mapMax(k MapKey, m MapMax ) {
    for i := 1; i < a.Len(); i++ {
       for j := i; j > 0 && m.Less(j, j-1); j-- {
          data.Swap(j, j-1)
          }
       }
-}*/
+}
