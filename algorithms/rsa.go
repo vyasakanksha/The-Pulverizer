@@ -23,7 +23,7 @@ var three = big.NewInt(3)
 func main( ) {
    var buf []byte
    var plaintext []int
-   var bCiphertext []*big.Int
+   var bCiphertext []big.Int
 
    flag.Parse()
    // Read in command line input, open the file given as the first argument
@@ -88,7 +88,7 @@ func main( ) {
    // If decrypt flag true
    } else if( *d ) {
       // Copies letter in temporary buffer to a *big.Int[]
-      bCiphertext = make( []*big.Int, len( buf ) )
+      bCiphertext = make( []big.Int, len( buf ) )
       for i := 0; i < len( buf ); i++ {
          bCiphertext[i].SetString( string( buf[i] ), 10)
       }
@@ -126,12 +126,18 @@ func privateKeyGenerator( plength int ) *big.Int {
    return prime
 }
 
-/*
+
 // Encrypts each letter in plaintext []int, using n and e as the public exponents. Returns a []big.Int with the ciphertext of each letter.
 func encrypt( plaintext []int, n, e *big.Int, textLen int ) []big.Int {
-   return
+   ciphertext := make( []big.Int, textLen )
+   for i := 0; i < textLen; i++ {
+      plainB := big.NewInt( int64( plaintext[i] ))
+      ciphertext[i].Exp( plainB, e, n )
+      fmt.Println( &ciphertext[i] )
+   }
+   return ciphertext
 }
-
+/*
 // Decrypts each letter in ciphertext []big.Int, using public exponent n and
 // private exponenet d. Returns a []int with the decrypted text of each letter.
 func decrypt( ciphertext []*big.Int, n, d *big.Int, textLen int ) []int {
