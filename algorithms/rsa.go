@@ -6,6 +6,8 @@ import(
     "big"
    "strconv"
    "flag"
+   "rand"
+   "time"
    )
 
 
@@ -14,7 +16,7 @@ var e = flag.Bool("e", false, "encrypt text")
 var d = flag.Bool("d", false, "decrypt text")
 
 var one = big.NewInt(1)
-//var two = big.NewInt(2)
+var two = big.NewInt(2)
 var three = big.NewInt(3)
 
 
@@ -67,10 +69,10 @@ func main( ) {
       bE = three
 
       // Generates private keys ensuring that they are not equal to each other
-      privateKeyGenerator( bP, plength )
-      privateKeyGenerator( bQ, plength )
+      bP = privateKeyGenerator( plength )
+      bQ = privateKeyGenerator( plength )
       if bP == bQ {
-         privateKeyGenerator( bP, plength )
+         bQ = privateKeyGenerator( plength )
       }
 
       // Calculats public exponenet n and private exponent d
@@ -99,11 +101,32 @@ func main( ) {
    return
 }
 
-/*// Generates large (probably) prime number that is of the specified bit length
+// Generates large (probably) prime number that is of the specified bit length
 func privateKeyGenerator( plength int ) *big.Int {
-   return
+   var tempB = new( big.Int )
+   var mlength = new( big.Int )
+   var prime = new( big.Int )
+   isPrime := false
+   plengthB := big.NewInt( int64( plength ) )
+
+   // Calculates the length of the required random numbers as <  2^(plength)
+   mlength.Exp( two, plengthB, nil )
+
+   // Seends rand
+   source := rand.NewSource( time.Nanoseconds() )
+   r := rand.New( source )
+
+   // Ensures that the number is (probably) prime
+   for( !isPrime ) {
+      tempB.Rand( r, mlength )
+      // sets the 2^(plength) bit to ensure that the number it atleast that big
+      prime.SetBit( tempB, plength, 1) 
+      isPrime = big.ProbablyPrime( prime, 5 )
+   }
+   return prime
 }
 
+/*
 // Encrypts each letter in plaintext []int, using n and e as the public exponents. Returns a []big.Int with the ciphertext of each letter.
 func encrypt( plaintext []int, n, e *big.Int, textLen int ) []big.Int {
    return
