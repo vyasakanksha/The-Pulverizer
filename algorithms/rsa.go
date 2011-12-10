@@ -3,12 +3,27 @@ package main
 import(
    "fmt"
    "os"
- //  "big"
+    "big"
    "strconv"
+   "flag"
    )
+
+
+// Flags for encryption / decryption
+var e = flag.Bool("e", false, "encrypt text")
+var d = flag.Bool("d", false, "decrypt text")
+
+var one = big.NewInt(1)
+//var two = big.NewInt(2)
+var three = big.NewInt(3)
+
 
 func main( ) {
    var buf []byte
+   var plaintext []int
+   var bCiphertext []*big.Int
+
+   flag.Parse()
    // Read in command line input, open the file given as the first argument
    // to the program and save it in byte[] buf.
    if len(os.Args) < 3 {
@@ -24,15 +39,64 @@ func main( ) {
 
    // Reads the desired bitlength of the private keys and stores it in pleangth
    // int.
-    temp := os.Args[3]
-    plength, err := strconv.Atoi(temp); if err != nil {
-      fmt.Fprintf( os.Stderr, "%s\n", err )
-    }
+   temp := os.Args[3]
+   plength, err := strconv.Atoi( temp ); if err != nil {
+     fmt.Fprintf( os.Stderr, "%s\n", err )
+   }
 
-    fmt.Printf("plength: %d\n", plength)
-    fmt.Println( string( buf ))
+   // public exponent
+   bN := new( big.Int )
 
-    return
+   // private exponent
+   bD := new( big.Int )
+
+   // If encrypt flag true
+   if( *e ) {
+
+      // Copies the temp buffer over to plaintext []int and sets up variables for
+      // private and public keys.
+      plaintext = []int(string(buf))
+      bP       := new( big.Int )
+      bQ       := new( big.Int )
+      bE       := new( big.Int )
+      bPMinus1 := new( big.Int )
+      bQMinus1 := new( big.Int )
+      bPhi     := new( big.Int )
+
+      // Setting public exponenet e to three does not affect security
+      bE = three
+
+      // Generates private keys ensuring that they are not equal to each other
+      privateKeyGenerator( bP, plength )
+      privateKeyGenerator( bQ, plength )
+      if bP == bQ {
+         privateKeyGenerator( bP, plength )
+      }
+
+      // Calculats public exponenet n and private exponent d
+      bN.Mul( bP, bQ )
+      bPMinus1.Sub( bP, one )
+      bQMinus1.Sub( bQ , one )
+      bPhi.Mul( bPMinus1, bQMinus1 )
+      bD.ModInverse( bE, bPhi )
+
+      // Encrypts text
+      bCiphertext = encrypt( plaintext, bN, bE, len( plaintext ))
+
+   // If decrypt flag true
+   } else if( *d ) {
+      // Copies letter in temporary buffer to a *big.Int[]
+      bCiphertext = make( []*big.Int, len( buf ) )
+      for i := 0; i < len( buf ); i++ {
+         bCiphertext[i].SetString( string( buf[i] ), 10)
+      }
+      // If no flag is set, exits with error
+   } else {
+      fmt.Fprintf( os.Stderr, "RSA: No flag set\n" )
+      os.Exit(0)
+   }
+
+   return
 }
 
 /*// Generates large (probably) prime number that is of the specified bit length
