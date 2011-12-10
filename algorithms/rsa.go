@@ -39,13 +39,6 @@ func main( ) {
       f.Read( buf )
    }
 
-   // Reads the desired bitlength of the private keys and stores it in pleangth
-   // int.
-   temp := os.Args[3]
-   plength, err := strconv.Atoi( temp ); if err != nil {
-     fmt.Fprintf( os.Stderr, "%s\n", err )
-   }
-
    // public exponent
    bN := new( big.Int )
 
@@ -68,6 +61,13 @@ func main( ) {
       // Setting public exponenet e to three does not affect security
       bE = three
 
+   // Reads the desired bitlength of the private keys and stores it in plength
+   // int.
+   temp := os.Args[3]
+   plength, err := strconv.Atoi( temp ); if err != nil {
+     fmt.Fprintf( os.Stderr, "%s\n", err )
+   }
+
       // Generates private keys ensuring that they are not equal to each other
       bP = privateKeyGenerator( plength )
       bQ = privateKeyGenerator( plength )
@@ -82,17 +82,29 @@ func main( ) {
       bPhi.Mul( bPMinus1, bQMinus1 )
       bD.ModInverse( bE, bPhi )
 
+      fmt.Println( "private exponenets:" )
+      fmt.Println( bP )
+      fmt.Println( bQ )
+      fmt.Println( bPhi )
+      fmt.Println( bD )
+      fmt.Println(  )
+
       // Encrypts text
       bCiphertext = encrypt( plaintext, bN, bE, len( plaintext ))
 
    // If decrypt flag true
    } else if( *d ) {
+   fmt.Println( "in decrypt" )
+   // Reads the secret key and stores it in bD
+   temp := os.Args[3]
+   bD.SetString( temp, 10 )
       // Copies letter in temporary buffer to a *big.Int[]
       bCiphertext = make( []big.Int, len( buf ) )
       for i := 0; i < len( buf ); i++ {
          bCiphertext[i].SetString( string( buf[i] ), 10)
+         plaintext = decrypt( bCiphertext, bN, bD, len( bCiphertext ))
       }
-      // If no flag is set, exits with error
+   // If no flag is set, exits with error
    } else {
       fmt.Fprintf( os.Stderr, "RSA: No flag set\n" )
       os.Exit(0)
@@ -137,12 +149,19 @@ func encrypt( plaintext []int, n, e *big.Int, textLen int ) []big.Int {
    }
    return ciphertext
 }
-/*
+
 // Decrypts each letter in ciphertext []big.Int, using public exponent n and
 // private exponenet d. Returns a []int with the decrypted text of each letter.
-func decrypt( ciphertext []*big.Int, n, d *big.Int, textLen int ) []int {
-   return
+func decrypt( ciphertext []big.Int, n, d *big.Int, textLen int ) []int {
+   bDecrypt := make( []big.Int, textLen )
+   plaintext := make( []int, textLen )
+   for i := 0; i < textLen; i++ {
+      fmt.Println( i )
+      bDecrypt[i].Exp( &ciphertext[i], d, n )
+      plaintext[i] = int( bDecrypt[i].Int64() )
+      fmt.Println( plaintext[i] )
+   }
+   return plaintext
 }
-*/
 
 
