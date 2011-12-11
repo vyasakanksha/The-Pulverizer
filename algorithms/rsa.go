@@ -16,6 +16,7 @@ import(
 var e = flag.Bool("e", false, "encrypt text")
 var d = flag.Bool("d", false, "decrypt text")
 
+var zero = big.NewInt(0)
 var one = big.NewInt(1)
 var two = big.NewInt(2)
 var three = big.NewInt(3)
@@ -23,7 +24,7 @@ var three = big.NewInt(3)
 
 func main( ) {
    var plaintext []int
-   var bCiphertext []big.Int
+   var bCiphertext []*big.Int
 
    flag.Parse()
    // Read in command line input, open the file given as the first argument
@@ -64,54 +65,79 @@ func main( ) {
          bPMinus1 := new( big.Int )
          bQMinus1 := new( big.Int )
          bPhi     := new( big.Int )
+         rem      := new( big.Int )
 
-         // Setting public exponenet e to three does not affect security
-         bE = three
 
          // Generates private keys ensuring that they are not equal to each other
          bP = privateKeyGenerator( plength )
          bQ = privateKeyGenerator( plength )
-         if bP == bQ {
+
+         fmt.Println( "p", bP )
+         fmt.Println( "q", bQ )
+         for bP.Cmp(bQ) == 0 {
+            fmt.Println( "ji" )
             bQ = privateKeyGenerator( plength )
          }
 
-         // Calculats public exponenet n and private exponent d
+         // Calculates public exponent n and private exponent d
+
          bN.Mul( bP, bQ )
          bPMinus1.Sub( bP, one )
          bQMinus1.Sub( bQ , one )
          bPhi.Mul( bPMinus1, bQMinus1 )
+
+         source := rand.NewSource( time.Nanoseconds() )
+         r := rand.New( source )
+         bE.Rand( r, bPhi )
+         for( rem.Rem( bE, bPhi ) == zero ) {
+            bE.Rand( r, bPhi )
+         }
+
          bD.ModInverse( bE, bPhi )
 
-         fmt.Println( "private exponenets:" )
-         fmt.Println( bP )
-         fmt.Println( bQ )
-         fmt.Println( bPhi )
-         fmt.Println( bD )
-         fmt.Println(  )
+         fmt.Println( "private exponents:" )
+         fmt.Println( "p", bP )
+         fmt.Println( "q", bQ )
+         fmt.Println( "phi", bPhi )
+         fmt.Println( "n", bN )
+         fmt.Println( "e", bE )
+         fmt.Println( "d", bD, "\n" )
 
          // Encrypts text
          bCiphertext = encrypt( plaintext, bN, bE, len( plaintext ))
 
       // If decrypt flag true
       } else if( *d ) {
-         // Reads in the ciphertext and stores each letter into a string slice
-         stringBuf := make( []string, st.Size )
+         var stringBuf []string
+         r := bufio.NewReader( f )
+         for {
+            if temp, err := r.ReadString( '\n' ); err != nil {
+               break
+            } else {
+               stringBuf = append( stringBuf, temp )
+            }
+         }
 
          // Reads the secret key and stores it in bD
-         temp := os.Args[3]
-         bD.SetString( temp, 10 )
+         temp_d := os.Args[3]
+         bD.SetString( temp_d, 10 )
+
+         // Reads the secret key and stores it in bD
+         temp_n := os.Args[4]
+         bN.SetString( temp_n, 10 )
 
          // Copies letter in temporary buffer to a *big.Int[]
-         bCiphertext = make( []big.Int, len( stringBuf ) )
+         bCiphertext = make( []*big.Int, len( stringBuf ) )
 
-         r := bufio.NewReader( f )
          for i := 0; i < len( stringBuf ); i++ {
-            stringBuf[i], _ = r.ReadString( '\n' )
+            bCiphertext[i] = new( big.Int )
             bCiphertext[i].SetString( string( stringBuf[i] ), 10)
          }
 
-      plaintext = decrypt( bCiphertext, bN, bD, len( bCiphertext ))
-      // If no flag is set, exits with error
+         fmt.Println( "n", bN, "d", bD )
+
+         plaintext = decrypt( bCiphertext, bN, bD, len( bCiphertext ))
+         // If no flag is set, exits with error
       } else {
          fmt.Fprintf( os.Stderr, "RSA: No flag set\n" )
          os.Exit(0)
@@ -148,29 +174,27 @@ func privateKeyGenerator( plength int ) *big.Int {
 
 
 // Encrypts each letter in plaintext []int, using n and e as the public exponents. Returns a []big.Int with the ciphertext of each letter.
-func encrypt( plaintext []int, n, e *big.Int, textLen int ) []big.Int {
-   ciphertext := make( []big.Int, textLen )
+func encrypt( plaintext []int, n, e *big.Int, textLen int ) []*big.Int {
+   ciphertext := make( []*big.Int, textLen )
    for i := 0; i < textLen; i++ {
       plainB := big.NewInt( int64( plaintext[i] ))
+      ciphertext[i] = new( big.Int )
       ciphertext[i].Exp( plainB, e, n )
-      fmt.Println( &ciphertext[i] )
+      fmt.Println( ciphertext[i] )
    }
    return ciphertext
 }
 
 // Decrypts each letter in ciphertext []big.Int, using public exponent n and
 // private exponenet d. Returns a []int with the decrypted text of each letter.
-func decrypt( ciphertext []big.Int, n, d *big.Int, textLen int ) []int {
-   bDecrypt := make( []big.Int, textLen )
-   plaintext := make( []int, textLen )
+func decrypt( ciphertext []*big.Int, n, d *big.Int, textLen int ) []int {
+   bDecrypt := make( []*big.Int, textLen )
+   plain := make( []int, textLen )
    for i := 0; i < textLen; i++ {
-      fmt.Println( i )
+      bDecrypt[i] = new( big.Int )
       bDecrypt[i].Exp( ciphertext[i], d, n )
-      fmt.Printf( "bd: %d", &bDecrypt[i] )
-      plaintext[i] = int( bDecrypt[i].Int64() )
-      fmt.Println( plaintext[i] )
+      plain[i] = int( bDecrypt[i].Int64() )
+      fmt.Println( string( plain[i] ) )
    }
-   return plaintext
+   return plain
 }
-
-
