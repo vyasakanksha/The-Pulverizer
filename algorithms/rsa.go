@@ -28,7 +28,7 @@ func main( ) {
    var plaintext []int
    var bCiphertext []*big.Int
 
-   // Flags indicate wether program should encrypt or decrypt
+   // Flags indicate weather program should encrypt or decrypt
    flag.Parse()
       // public exponent n
       bN := new( big.Int )
@@ -87,7 +87,7 @@ func main( ) {
             // Phi = (p - 1)(q - 1)
             bPhi.Mul( bPMinus1, bQMinus1 )
 
-            // Generares random e < phi
+            // Generates random e < phi
             source := rand.NewSource( time.Nanoseconds() )
             r := rand.New( source )
             bE.Rand( r, bPhi )
@@ -124,7 +124,7 @@ func main( ) {
             // Ciphertexts are large. We need a buffered reader.
             r := bufio.NewReader( f )
 
-            // Ciphertexts are seperated by new lines in the file. The next block
+            // Ciphertexts are separated by new lines in the file. The next block
             // of code stores them into a temporary string slice.
             for {
                if temp, err := r.ReadString( '\n' ); err != nil {
@@ -185,7 +185,7 @@ func privateKeyGenerator( plength int ) *big.Int {
       tempB.Rand( r, mlength )
       // sets the 2^(plength) bit to ensure that our prime has 2^n bits
       prime.SetBit( tempB, plength, 1)
-      // Miller-Rabin probibalistic primality test
+      // Miller-Rabin probabilistic primality test
       isPrime = big.ProbablyPrime( prime, 5 )
    }
    return prime
@@ -195,7 +195,7 @@ func privateKeyGenerator( plength int ) *big.Int {
 // Encrypts each letter in plaintext []int, using n and e as the public exponents. Returns a []big.Int with the ciphertext of each letter.
 func encrypt( plaintext []int, n, e *big.Int, textLen int ) []*big.Int {
    ciphertext := make( []*big.Int, textLen )
-   // Encrypt each character seperately
+   // Encrypt each character separately
    for i := 0; i < textLen; i++ {
       // Caste each plaintext character to int64 and then big.Int
       bPlain := big.NewInt( int64( plaintext[i] ))
@@ -207,7 +207,7 @@ func encrypt( plaintext []int, n, e *big.Int, textLen int ) []*big.Int {
 }
 
 // Decrypts each letter in ciphertext []big.Int, using public exponent n and
-// private exponenet d. Returns a []int with the decrypted text of each letter.
+// private exponent d. Returns a []int with the decrypted text of each letter.
 func decrypt( ciphertext []*big.Int, n, d *big.Int, textLen int ) []int {
    bDecrypt := make( []*big.Int, textLen )
    plaintext := make( []int, textLen )
