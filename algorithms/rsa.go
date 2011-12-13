@@ -9,7 +9,6 @@ import(
    "rand"
    "time"
    "bufio"
-   "coolFunctions"
    )
 
 // Flags indicating encryption / decryption
@@ -39,23 +38,23 @@ func main( ) {
       // If encrypt flag true
       if( *e ) {
          // Input should be: flag plaintext ciphertext bitlength
-         if len(os.Args) != 4 {
+         if len(os.Args) != 5 {
             fmt.Fprintf( os.Stderr, "RSA: Not enough arguments \n" )
          } else if st, err := os.Stat( os.Args[2] ); err != nil {
             fmt.Fprintf( os.Stderr, "RSA: %s\n", err );
-         } else if f, err := os.Open( os.Args[2] ); err != nil {
+         } else if fIn, err := os.Open( os.Args[2] ); err != nil {
             fmt.Fprintf( os.Stderr, "RSA: %s\n", err );
          } else {
             // Reads the plaintext
             intBuf := make( []byte, st.Size )
-            f.Read( intBuf )
+            fIn.Read( intBuf )
             plaintext = []int( string( intBuf ))
 
             // Reads string bitlength ( of the private keys ) and stores it as
             // an int
-            temp := os.Args[3]
+            temp := os.Args[4]
             plength, err := strconv.Atoi( temp ); if err != nil {
-               fmt.Fprintf( os.Stderr, "%s\n", err )
+               fmt.Fprintf( os.Stderr, "RSA: %s\n", err )
             }
 
             // Sets up variables for calculating keys
@@ -71,10 +70,7 @@ func main( ) {
             bP = privateKeyGenerator( plength )
             bQ = privateKeyGenerator( plength )
 
-            fmt.Println( "p", bP )
-            fmt.Println( "q", bQ )
             for bP.Cmp(bQ) == 0 {
-               fmt.Println( "ji" )
                bQ = privateKeyGenerator( plength )
             }
 
@@ -91,12 +87,13 @@ func main( ) {
             source := rand.NewSource( time.Nanoseconds() )
             r := rand.New( source )
             bE.Rand( r, bPhi )
-            for( bRem.Rem( bE, bPhi ) == zero ) {
+            bRem.Rem( bE, bPhi )
+            for ( bRem.Cmp( zero ) == 0 ) {
                bE.Rand( r, bPhi )
             }
 
             // d = e^{-1} (  phi )
-            bD = coolFunctions.ModuloInverse( bE, bPhi )
+            bD.ModInverse( bE, bPhi )
 
             fmt.Println( "Public keys:" )
             fmt.Println( "n", bN )
@@ -107,22 +104,23 @@ func main( ) {
 
             // Encrypts text
             bCiphertext = encrypt( plaintext, bN, bE, len( plaintext ))
+            for i := 0; i < len( plaintext ); i++ {
+               fmt.Fprintf( os.Stdout, "%d\n", bCiphertext[i] )
+            }
          }
 
       // If decrypt flag true
       } else if( *d ) {
          // Input should be: flag cichertext decrypted-text n d
-         if len(os.Args) != 5 {
+         if len(os.Args) != 6 {
             fmt.Fprintf( os.Stderr, "RSA: Not enough arguments \n" )
-         } else if st, err := os.Stat( os.Args[2] ); err != nil {
-            fmt.Fprintf( os.Stderr, "RSA: %s\n", err );
-         } else if f, err := os.Open( os.Args[2] ); err != nil {
+         } else if fIn, err := os.Open( os.Args[2] ); err != nil {
             fmt.Fprintf( os.Stderr, "RSA: %s\n", err );
          } else {
-            stringBuf := make( []string, st.Size )
+            var stringBuf []string
 
             // Ciphertexts are large. We need a buffered reader.
-            r := bufio.NewReader( f )
+            r := bufio.NewReader( fIn )
 
             // Ciphertexts are separated by new lines in the file. The next block
             // of code stores them into a temporary string slice.
@@ -142,15 +140,18 @@ func main( ) {
             }
 
             // Reads secret key d
-            temp_d := os.Args[3]
+            temp_d := os.Args[4]
             bD.SetString( temp_d, 10 )
 
             // Reads public key n
-            temp_n := os.Args[4]
+            temp_n := os.Args[5]
             bN.SetString( temp_n, 10 )
 
             // Decrypt!!
             plaintext = decrypt( bCiphertext, bN, bD, len( bCiphertext ))
+            for i := 0; i < len( plaintext ); i++ {
+               fmt.Fprintf( os.Stdout, "%d\n", plaintext[i] )
+            }
          }
       // If no flag ( encrypt or decrypt ) is set, exits with error
       } else {
@@ -209,17 +210,16 @@ func encrypt( plaintext []int, n, e *big.Int, textLen int ) []*big.Int {
 // Decrypts each letter in ciphertext []big.Int, using public exponent n and
 // private exponent d. Returns a []int with the decrypted text of each letter.
 func decrypt( ciphertext []*big.Int, n, d *big.Int, textLen int ) []int {
-   bDecrypt := make( []*big.Int, textLen )
    plaintext := make( []int, textLen )
    // Decrypt each character seperately
    for i := 0; i < textLen; i++ {
       // Initialize each element in decrypt as a big.Int and set it to: 
       // m = c^d (mod n)
-      bDecrypt[i] = new( big.Int )
-      bDecrypt[i].Exp( ciphertext[i], d, n )
+      bDecrypt := new( big.Int )
+      bDecrypt.Exp( ciphertext[i], d, n )
       // Caste each element in decrypt to a ( int64 and then an ) int ( as the message originally
       // was ).
-      plaintext[i] = int( bDecrypt[i].Int64() )
+      plaintext[i] = int( bDecrypt.Int64() )
    }
    return plaintext
 }
